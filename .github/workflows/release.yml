@@ -1,0 +1,39 @@
+name: Build & release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Package plugin
+        run: |
+          mkdir -p out/tailscale-toggle
+          cp -r dist main.py plugin.json package.json LICENSE README.md out/tailscale-toggle/
+          (cd out && zip -r ../tailscale-toggle.zip tailscale-toggle)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tailscale-toggle
+          path: tailscale-toggle.zip
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: tailscale-toggle.zip
+          generate_release_notes: true

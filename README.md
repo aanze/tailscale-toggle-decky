@@ -16,41 +16,65 @@ and `systemd`.
   running it is started first. Turning it off keeps the daemon alive so the
   next "on" is instant.
 - **Status card** — Connected / Disconnected / Not logged in / Daemon stopped,
-  IPv4, DNS name, account.
+  IPv4, DNS name, account. Press A on it to refresh.
 - **Devices** — every peer on the tailnet, online ones first, with OS and IP.
 - Polls every 4 s while the panel is open, nothing runs when it is closed.
 
-The plugin runs its backend as root (Decky `root` flag) because talking to
-`tailscaled` requires it, unless an operator was configured.
+The backend runs as root (Decky `root` flag) because talking to `tailscaled`
+requires it.
 
-## One-time setup on the device
+## Before installing: log Tailscale in once
 
-The plugin only toggles an existing Tailscale login; it does not do the
-browser-based login for you. Once, from a terminal or SSH:
+The plugin only switches an existing Tailscale login on and off; it does not
+do the browser login for you. Once, from a terminal on the device (Desktop
+Mode → Konsole) or over SSH:
 
 ```sh
 sudo systemctl enable --now tailscaled
-sudo tailscale up --hostname=my-handheld    # prints a login URL, open it anywhere
+sudo tailscale up --hostname=my-handheld
 ```
 
-After that, "on" and "off" from the plugin reuse those preferences. The plugin
-calls `tailscale up` with no flags on purpose — Tailscale refuses to change
-settings without every flag being repeated, so keep the flags for the one-time
-`up` above.
+`tailscale up` prints a login URL — open it on any device, approve, done.
+From then on the plugin reuses those preferences. It deliberately calls
+`tailscale up` with no flags: Tailscale refuses to change settings unless
+every flag is repeated, so keep the flags for this one-time command.
 
 ## Install
 
-Decky keeps `~/homebrew/plugins` owned by root, so copying needs `sudo`.
+### From a release (no build tools needed)
+
+1. Grab `tailscale-toggle.zip` from the
+   [latest release](https://github.com/aanze/tailscale-toggle-decky/releases/latest).
+2. In Decky: **Settings → General → Developer mode** on, then
+   **Settings → Developer → Install plugin from ZIP** and pick the file.
+   Copy the zip to the device first (USB, Warpinator, `scp` …).
+
+   Without developer mode, unzip it by hand into `~/homebrew/plugins/`:
+
+   ```sh
+   sudo unzip tailscale-toggle.zip -d ~/homebrew/plugins/
+   sudo chown -R root:root ~/homebrew/plugins/tailscale-toggle
+   ```
+
+   `sudo` is needed because Decky keeps `~/homebrew/plugins` owned by root.
+   Decky picks the plugin up on its own; if it does not show up,
+   `sudo systemctl restart plugin_loader`.
+
+### From source
+
+On a computer with [Node.js](https://nodejs.org) 22+ and
+[pnpm](https://pnpm.io) (`npm install -g pnpm`):
 
 ```sh
+git clone https://github.com/aanze/tailscale-toggle-decky.git
+cd tailscale-toggle-decky
 pnpm install
-pnpm build
 scripts/deploy.sh user@device      # builds, copies over SSH, installs with sudo
 ```
 
-Or by hand: copy `main.py`, `plugin.json`, `package.json` and `dist/` into
-`~/homebrew/plugins/tailscale-toggle/` on the device. Decky loads it on its
-own; if it does not show up, `sudo systemctl restart plugin_loader`.
+`scripts/deploy.sh` (it is in the clone) runs `pnpm build`, copies the plugin
+to `/tmp` on the device with `scp`, then moves it into `~/homebrew/plugins`
+with `sudo` — that last step asks for the device user's password.
 
 ## Development
 
@@ -68,6 +92,8 @@ Decky:
 mkdir -p /tmp/stub && printf 'import logging\nlogger=logging.getLogger("decky")\n' > /tmp/stub/decky.py
 PYTHONPATH=/tmp/stub python3 -c 'import main, json; print(json.dumps(main.build_status(), indent=1))'
 ```
+
+Releases are built by GitHub Actions on every `v*` tag.
 
 ## License
 
