@@ -41,24 +41,25 @@ every flag is repeated, so keep the flags for this one-time command.
 
 ## Install
 
-### From a release (no build tools needed)
+### One line, on the device
 
-1. Grab `tailscale-toggle.zip` from the
-   [latest release](https://github.com/aanze/tailscale-toggle-decky/releases/latest).
-2. In Decky: **Settings → General → Developer mode** on, then
-   **Settings → Developer → Install plugin from ZIP** and pick the file.
-   Copy the zip to the device first (USB, Warpinator, `scp` …).
+From a terminal on the device (Desktop Mode → Konsole, or SSH):
 
-   Without developer mode, unzip it by hand into `~/homebrew/plugins/`:
+```sh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/aanze/tailscale-toggle-decky/main/install.sh)"
+```
 
-   ```sh
-   sudo unzip tailscale-toggle.zip -d ~/homebrew/plugins/
-   sudo chown -R root:root ~/homebrew/plugins/tailscale-toggle
-   ```
+It downloads the latest release and puts it in `~/homebrew/plugins/` — that
+step asks for your password because Decky keeps that folder root-owned. Run
+it again to update. Decky loads the plugin on its own; if it does not show up,
+`sudo systemctl restart plugin_loader`.
 
-   `sudo` is needed because Decky keeps `~/homebrew/plugins` owned by root.
-   Decky picks the plugin up on its own; if it does not show up,
-   `sudo systemctl restart plugin_loader`.
+### From the zip
+
+Download `tailscale-toggle.zip` from the
+[latest release](https://github.com/aanze/tailscale-toggle-decky/releases/latest),
+copy it to the device, then in Decky: **Settings → General → Developer mode**
+on, **Settings → Developer → Install plugin from ZIP**.
 
 ### From source
 
@@ -69,12 +70,11 @@ On a computer with [Node.js](https://nodejs.org) 22+ and
 git clone https://github.com/aanze/tailscale-toggle-decky.git
 cd tailscale-toggle-decky
 pnpm install
-scripts/deploy.sh user@device      # builds, copies over SSH, installs with sudo
+scripts/deploy.sh user@device
 ```
 
-`scripts/deploy.sh` (it is in the clone) runs `pnpm build`, copies the plugin
-to `/tmp` on the device with `scp`, then moves it into `~/homebrew/plugins`
-with `sudo` — that last step asks for the device user's password.
+`scripts/deploy.sh` builds, copies the plugin to the device with `scp`, then
+installs it with `sudo` (asks for the device user's password).
 
 ## Development
 
