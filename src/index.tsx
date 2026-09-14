@@ -1,5 +1,5 @@
 import { callable, definePlugin, toaster, useQuickAccessVisible } from "@decky/api";
-import { ButtonItem, PanelSection, PanelSectionRow, ToggleField, staticClasses } from "@decky/ui";
+import { ButtonItem, Focusable, PanelSection, PanelSectionRow, ToggleField, staticClasses } from "@decky/ui";
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 type State = "running" | "stopped" | "needs_login" | "no_daemon" | "missing" | "error";
@@ -67,7 +67,11 @@ const Dot: FC<{ color: string; size?: number; glow?: boolean }> = ({ color, size
   />
 );
 
-const StatusCard: FC<{ status: Status | null; busy: boolean }> = ({ status, busy }) => {
+const StatusCard: FC<{ status: Status | null; busy: boolean; onActivate: () => void }> = ({
+  status,
+  busy,
+  onActivate,
+}) => {
   const state = status?.state ?? "stopped";
   const label = STATE_LABEL[state];
   const running = state === "running";
@@ -82,7 +86,8 @@ const StatusCard: FC<{ status: Status | null; busy: boolean }> = ({ status, busy
           : status?.error || "";
 
   return (
-    <div
+    <Focusable
+      onActivate={onActivate}
       style={{
         margin: "4px 0 6px",
         padding: "12px 14px",
@@ -147,17 +152,18 @@ const StatusCard: FC<{ status: Status | null; busy: boolean }> = ({ status, busy
           )}
         </div>
       )}
-    </div>
+    </Focusable>
   );
 };
 
 const PeerRow: FC<{ peer: Peer }> = ({ peer }) => (
-  <div
+  <Focusable
     style={{
       display: "flex",
       alignItems: "center",
       gap: 10,
-      padding: "7px 4px",
+      padding: "7px 6px",
+      borderRadius: 6,
       borderBottom: `1px solid ${C.border}`,
       opacity: peer.online ? 1 : 0.55,
     }}
@@ -192,7 +198,7 @@ const PeerRow: FC<{ peer: Peer }> = ({ peer }) => (
     >
       {peer.os || "?"}
     </span>
-  </div>
+  </Focusable>
 );
 
 const Content: FC = () => {
@@ -241,7 +247,7 @@ const Content: FC = () => {
     <>
       <PanelSection>
         <PanelSectionRow>
-          <StatusCard status={status} busy={busy} />
+          <StatusCard status={status} busy={busy} onActivate={refresh} />
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
@@ -262,11 +268,11 @@ const Content: FC = () => {
             </PanelSectionRow>
           ) : (
             <PanelSectionRow>
-              <div style={{ display: "flex", flexDirection: "column" }}>
+              <Focusable flow-children="vertical" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {peers.map((p) => (
                   <PeerRow key={p.ip || p.name} peer={p} />
                 ))}
-              </div>
+              </Focusable>
             </PanelSectionRow>
           )}
         </PanelSection>
