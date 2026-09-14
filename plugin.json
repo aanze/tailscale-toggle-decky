@@ -6,6 +6,6 @@
   "publish": {
     "tags": ["network", "tailscale", "vpn", "root"],
     "description": "Turn Tailscale on or off from the Quick Access Menu and see your tailnet IP, login and peers at a glance.",
-    "image": "https://raw.githubusercontent.com/aanze/tailsacale-toggle-decky/main/assets/preview.png"
+    "image": "https://raw.githubusercontent.com/aanze/tailscale-toggle-decky/main/assets/preview.png"
   }
 }

@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aanze/tailsacale-toggle-decky.git"
+    "url": "git+https://github.com/aanze/tailscale-toggle-decky.git"
   },
   "keywords": ["decky-plugin", "tailscale", "steam-deck", "armada"],
   "author": "aanze",
